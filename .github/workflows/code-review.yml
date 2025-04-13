@@ -12,7 +12,7 @@ concurrency:
 jobs:
   review:
     runs-on: ubuntu-latest
-    environment: AWS_ROLE_TO_ASSUME
+    environment: OpenAI_Intelligent_DevOps
 
     permissions:
       # read repository contents and write pull request comments
