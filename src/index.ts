@@ -16,12 +16,12 @@ async function run(): Promise<void> {
 
     const githubToken = core.getInput('github-token');
 
-    const apiKey = core.getInput('azure-openai-api-key');
     // TODO replace with token
-
+    const apiKey = core.getInput('azure-openai-api-key');
     const endpoint = core.getInput('azure-openai-endpoint');
-    const apiVersion: string = core.getInput('azure-openai-api-version') || '2023-05-15'; // Replace with your Azure OpenAI API version
+    const apiVersion: string = core.getInput('azure-openai-api-version') || '2024-04-01-preview'; // Replace with your Azure OpenAI API version
     const deployment: string = core.getInput('azure-openai-deployment') || 'gpt-35-turbo'; // Replace with your Azure OpenAI deployment name
+    const temperature = core.getInput('azure-openai-temperature') || '0.8'; // TODO where is this used?
 
     const excludeFiles = core.getInput('generate-code-review-exclude-files');
     const excludePatterns = excludeFiles ? excludeFiles.split(',').map(p => p.trim()) : [];
@@ -35,8 +35,13 @@ async function run(): Promise<void> {
     const unitTestExcludePatterns = unitTestExcludeFiles ? unitTestExcludeFiles.split(',').map(p => p.trim()) : [];
 
     console.log(`GitHub Token: ${githubToken ? 'Token is set' : 'Token is not set'}`);
-    //console.log(`AWS Region: ${awsRegion}`);
-    //console.log(`Model ID: ${modelId}`);
+
+    // Azure configuration
+    console.log(`apiKey: ${apiKey}`)
+    console.log(`Endpoint: ${endpoint}`);
+    console.log(`API Version: ${apiVersion}`);
+    console.log(`Deployment: ${deployment}`);
+
     console.log(`Excluded files: ${excludeFiles}`);
     console.log(`Code review: ${generateCodeReview}`);
     console.log(`Output language: ${outputLanguage}`);

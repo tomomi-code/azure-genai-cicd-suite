@@ -1,22 +1,30 @@
-name: 'Intelligent DevOps (Intelli-Ops) using Amazon Bedrock'
+name: 'Intelligent DevOps (Intelli-Ops) using Azure OpenAI'
 description: 'AI-powered GitHub Action for code reviews, PR descriptions, unit tests, and issue management using Amazon Bedrock.'
 inputs:
   github-token:
     description: 'GitHub token'
     required: true
-  aws-region:
-    description: 'AWS Region'
+  azure-openai-api-key:
+    description: 'Azure OpenAI API key'
     required: true
-    default: 'us-east-1'
-  model-id:
-    description: 'Model ID'
+  azure-openai-endpoint:
+    description: 'Azure OpenAI endpoint'
+    required: true
+  azure-openai-version:
+    description: 'Azure OpenAI version'
+    required: true
+    default: '2023-05-15'
+  azure-openai-deployment:
+    description: 'Azure OpenAI deployment'
+    required: true
+  azure-openai-temperature:
+    description: 'Azure OpenAI temperature'
     required: false
-    # Use specific prefix sagemaker.<api url> to specify the model hosted in AWS SageMaker
-    default: 'anthropic.claude-3-5-sonnet-20240620-v1:0'
+    default: '0.7'
   generate-code-review-exclude-files:
     description: 'Exclude file list, separated by comma, e.g. [*.md,*.json]'
     required: false
-    # defaul to null to disable the filter
+    # default to null to disable the filter
     default: ''
   generate-code-review-level:
     description: 'Code review level'
@@ -45,7 +53,7 @@ inputs:
     description: 'Output language'
     required: false
     default: 'en'
-# The index.js file in the intelligent-code-review action no longer needs to explicitly set AWS credentials. It will use the credentials set up by the configure-aws-credentials action
+
 runs:
   using: 'node20'
   main: 'dist/index.js'
