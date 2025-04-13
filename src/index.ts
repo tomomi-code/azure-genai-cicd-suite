@@ -12,10 +12,8 @@ import { PullRequest } from '@/src/utils';
 
 async function run(): Promise<void> {
 
-  console.log('Starting the GitHub Action... version 0.1');
-
   try {
-    console.log('Starting the GitHub Action... version 0.1c');
+    console.log('Starting the GitHub Action... version 0.1d');
 
     const githubToken = core.getInput('github-token');
 
