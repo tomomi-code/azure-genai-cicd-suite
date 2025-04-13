@@ -12,6 +12,8 @@ import { PullRequest } from '@/src/utils';
 
 async function run(): Promise<void> {
   try {
+    console.log('Starting the GitHub Action... version 0.1b');
+
     const githubToken = core.getInput('github-token');
 
     const apiKey = core.getInput('azure-openai-api-key');
