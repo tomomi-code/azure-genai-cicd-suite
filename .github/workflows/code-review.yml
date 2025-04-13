@@ -50,11 +50,6 @@ jobs:
         else
           echo "GitHub Token is not set"
         fi
-        if [ -n "${{ env.AWS_ROLE_TO_ASSUME_VAR }}" ]; then
-          echo "AWS Role to Assume is set"
-        else
-          echo "AWS Role to Assume is not set"
-        fi
 
     - name: Intelligent GitHub Actions
       uses: tomomi-code/azure-genai-cicd-suite@test1
