@@ -1,6 +1,7 @@
 import { Octokit } from '@octokit/rest';
-import { BedrockRuntimeClient, InvokeModelCommand } from '@aws-sdk/client-bedrock-runtime';
-import { invokeModel } from '../../src/utils';
+//import { BedrockRuntimeClient, InvokeModelCommand } from '@aws-sdk/client-bedrock-runtime';
+import { AzureOpenAI } from "openai";
+import { ChatCompletionMessageParam } from "openai/resources/chat";
 
 // Check if GITHUB_APP_TOKEN is set
 if (!process.env.GITHUB_APP_TOKEN) {
@@ -9,9 +10,8 @@ if (!process.env.GITHUB_APP_TOKEN) {
 }
 
 export const octokit = new Octokit({ auth: process.env.GITHUB_APP_TOKEN });
+const client = new AzureOpenAI({ apiKey, endpoint, apiVersion });
 
-const bedrockClient = new BedrockRuntimeClient({ region: 'us-east-1' });
-const modelId = 'anthropic.claude-3-sonnet-20240229-v1:0'; // Replace with your desired model ID
 const unitTestPrompt = "Generate unit tests for the following code: {{SOURCE_CODE}}";
 
 // invoke the function e.g. await generateUnitTestsPerFile(repository.full_name, issue.number.toString(), file.filename);
@@ -42,26 +42,28 @@ export async function generateUnitTestsPerFile(repoFullName: string, issueNumber
         ],
       };
 
-      const command = new InvokeModelCommand({
-          modelId: modelId,
-          contentType: "application/json",
-          body: JSON.stringify(payload),
+      const messages: ChatCompletionMessageParam[]  = [
+        {
+          role: "system",
+          content: "You are a helpful assistant.",
+        },
+        {
+          role: "user",
+          content: prompt,
+        },
+      ];
+
+      // Call the chat completions API using the deployment name
+      const response = await client.chat.completions.create({ 
+        messages, 
+        model: deployment, 
+        max_tokens: 4096,
+        temperature: temperature
       });
 
-      try {
-        const apiResponse = await bedrockClient.send(command)
-        if (apiResponse === undefined) {
-          console.log('Request timed out, returning fake response');
-          return "An error occurred while generating unit tests.";
-        }
-        const decodedResponseBody = new TextDecoder().decode(apiResponse.body);
-        const responseBody = JSON.parse(decodedResponseBody);
-        const finalResult = responseBody.content[0].text;
-        return finalResult;
-      } catch (error) {
-        console.error('Error generating unit tests:', error);
-        return "An error occurred while generating unit tests.";
-      }
+      // Extract the generated text from the response
+      const finalResult = response.choices?.[0]?.message?.content?.trim() ?? '';
+      return finalResult;
     }
   } catch (error) {
     console.error('Error generating unit tests:', error);

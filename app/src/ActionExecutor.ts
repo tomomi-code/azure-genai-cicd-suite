@@ -1,7 +1,7 @@
 import { FunctionRegistry, RegisteredFunction } from './FunctionRegistry';
 import { LargeLanguageModel } from './LargeLanguageModel';
 import { ActionTypeDeterminer, FunctionType } from './ActionTypeDeterminer';
-import { BedrockRuntimeClient } from '@aws-sdk/client-bedrock-runtime';
+import { AzureOpenAI } from 'openai';
 
 interface ExecutionResult {
   success: boolean;
@@ -15,9 +15,9 @@ export class ActionExecutor {
   private llm: LargeLanguageModel;
   private actionTypeDeterminer: ActionTypeDeterminer;
 
-  constructor(registry: FunctionRegistry, client: BedrockRuntimeClient, modelId: string) {
+  constructor(registry: FunctionRegistry, client: AzureOpenAI, deployment: string) {
     this.registry = registry;
-    this.llm = new LargeLanguageModel(client, modelId);
+    this.llm = new LargeLanguageModel(client, deployment);
     this.actionTypeDeterminer = new ActionTypeDeterminer();
   }
 

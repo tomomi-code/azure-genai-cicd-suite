@@ -1,18 +1,31 @@
 import { Octokit } from '@octokit/rest';
 import { WebhookEvent } from '@octokit/webhooks-types';
-import { BedrockRuntimeClient } from '@aws-sdk/client-bedrock-runtime';
 import { IntentionClassifier } from './IntentionClassifier';
 import { ActionExecutor } from './ActionExecutor';
 import { FunctionRegistry } from './FunctionRegistry';
 import { FunctionType } from './ActionTypeDeterminer';
 import { generateUnitTestsPerFile, modularizeFunction, generateStats, findConsoleLogStatements, generateClassDiagram, debugBotConfig } from './utilsApp';
 
-const bedrockClient = new BedrockRuntimeClient({ region: 'us-east-1' });
-const modelId = 'anthropic.claude-3-sonnet-20240229-v1:0';
+import { AzureOpenAI } from "openai";
+import 'dotenv/config';
 
-const intentionClassifier = new IntentionClassifier(bedrockClient, modelId);
+// Load environment variables
+const endpoint = process.env['AZURE_OPENAI_ENDPOINT'] || '';
+const deployment = process.env['AZURE_OPENAI_DEPLOYMENT'] || '';
+const apiVersion = process.env['AZURE_OPENAI_API_VERSION'] || '';
+const apiKey = process.env['AZURE_OPENAI_API_KEY'] || '';
+
+if (!deployment || !apiVersion || !apiKey) {
+  throw new Error('Missing required environment variables: AZURE_OPENAI_DEPLOYMENT, AZURE_OPENAI_API_VERSION, AZURE_OPENAI_API_KEY');
+}
+const options = { apiKey, endpoint, apiVersion };
+
+// Initialize the OpenAIClient with API key authentication
+const azureClient = new AzureOpenAI(options);
+
+const intentionClassifier = new IntentionClassifier(azureClient, deployment);
 const functionRegistry = new FunctionRegistry();
-const actionExecutor = new ActionExecutor(functionRegistry, bedrockClient, modelId);
+const actionExecutor = new ActionExecutor(functionRegistry, azureClient, deployment);
 
 // Register functions
 functionRegistry.registerFunction({
