@@ -1,4 +1,4 @@
-import { BedrockRuntimeClient } from "@aws-sdk/client-bedrock-runtime";
+import { AzureOpenAI } from "openai";
 import { context } from "@actions/github";
 import { getOctokit } from "@actions/github";
 import { shouldExcludeFile } from "../utils";
@@ -185,8 +185,8 @@ async function removeDuplicateImports(allTestCases: { fileName: string, testSour
 }
 
 export async function generateUnitTestsSuite(
-    client: BedrockRuntimeClient,
-    modelId: string,
+    client: AzureOpenAI,
+    deployment: string,
     octokit: ReturnType<typeof getOctokit>,
     repo: { owner: string, repo: string },
     unitTestSourceFolder: string
@@ -229,7 +229,7 @@ export async function generateUnitTestsSuite(
                                 fileContent: decodedContent,
                                 rootDir: unitTestSourceFolder
                             }
-                            const { generatedTests, coverageSummary, testResults } = await generateTestCasesForFile(client, modelId, fileMeta);
+                            const { generatedTests, coverageSummary, testResults } = await generateTestCasesForFile(client, deployment, fileMeta);
                             allTestCases.push({ fileName: file.name, testSource: generatedTests.join('\n\n') });
                             allCoverageSummaries.push(coverageSummary);
                             allTestResults = allTestResults.concat(testResults);
@@ -277,7 +277,7 @@ export async function generateUnitTestsSuite(
                         fileContent: decodedContent,
                         rootDir: unitTestSourceFolder
                     }
-                    const { generatedTests, coverageSummary, testResults } = await generateTestCasesForFile(client, modelId, fileMeta);
+                    const { generatedTests, coverageSummary, testResults } = await generateTestCasesForFile(client, deployment, fileMeta);
                     allTestCases.push({ fileName: fileMeta.fileName, testSource: generatedTests.join('\n\n') });
                     allCoverageSummaries.push(coverageSummary);
                     allTestResults = allTestResults.concat(testResults);
@@ -403,7 +403,7 @@ export async function generateUnitTestsSuite(
 }
 
 export async function generateTestCasesForFile(
-    client: BedrockRuntimeClient,
+    client: AzureOpenAI,
     modelId: string,
     fileMeta: {
         fileName: string,

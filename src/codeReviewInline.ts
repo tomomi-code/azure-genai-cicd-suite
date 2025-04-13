@@ -1,12 +1,12 @@
 import * as core from '@actions/core';
 import { getOctokit, context } from '@actions/github';
-import { BedrockRuntimeClient } from "@aws-sdk/client-bedrock-runtime";
+import { AzureOpenAI } from "openai";
 import { invokeModel, PullRequest, PullFile, shouldExcludeFile, languageCodeToName, LanguageCode } from '@/src/utils';
 import { Inputs, Prompts} from '@/src/prompts';
 
 const CODE_REVIEW_HEADER = "🔍 AI Code Review (Powered by Amazon Bedrock)";
 
-export async function generateCodeReviewComment(bedrockClient: BedrockRuntimeClient, modelId: string, octokit: ReturnType<typeof getOctokit>, excludePatterns: string[], reviewLevel: string, outputLanguage: string): Promise<void> {
+export async function generateCodeReviewComment(azClient: AzureOpenAI, deployment: string, octokit: ReturnType<typeof getOctokit>, excludePatterns: string[], reviewLevel: string, outputLanguage: string): Promise<void> {
 
   const pullRequest = context.payload.pull_request as PullRequest;
   const repo = context.repo;
@@ -93,7 +93,7 @@ export async function generateCodeReviewComment(bedrockClient: BedrockRuntimeCli
         inputs.languageName = languageName;
 
         var finalPromt = reviewLevel === 'detailed' ? prompts.renderDetailedReviewPrompt(inputs) : prompts.renderConciseReviewPrompt(inputs);
-        var review = await invokeModel(bedrockClient, modelId, finalPromt);  
+        var review = await invokeModel(azClient, deployment, finalPromt);  
 
         if (!review || review.trim() == '') {
           console.warn(`No review comments generated for hunk ${hunkIndex} in file ${file.filename}, skipping`);

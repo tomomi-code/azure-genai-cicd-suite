@@ -1,7 +1,7 @@
 import * as core from '@actions/core';
 import { getOctokit, context } from '@actions/github';
-import { BedrockRuntimeClient } from "@aws-sdk/client-bedrock-runtime";
-import { setTimeout } from 'timers/promises';
+import { AzureOpenAI } from "openai";
+import 'dotenv/config';
 
 // current we support typescript and python, while the python library is not available yet, we will use typescript as the default language
 // using abosolute path to import the functions from testGenerator.ts
@@ -13,8 +13,14 @@ import { PullRequest } from '@/src/utils';
 async function run(): Promise<void> {
   try {
     const githubToken = core.getInput('github-token');
-    const awsRegion = core.getInput('aws-region');
-    const modelId = core.getInput('model-id');
+
+    const apiKey = core.getInput('azure-openai-api-key');
+    // TODO replace with token
+
+    const endpoint = core.getInput('azure-openai-endpoint');
+    const apiVersion: string = core.getInput('azure-openai-api-version') || '2023-05-15'; // Replace with your Azure OpenAI API version
+    const deployment: string = core.getInput('azure-openai-deployment') || 'gpt-35-turbo'; // Replace with your Azure OpenAI deployment name
+
     const excludeFiles = core.getInput('generate-code-review-exclude-files');
     const excludePatterns = excludeFiles ? excludeFiles.split(',').map(p => p.trim()) : [];
     const reviewLevel = core.getInput('generate-code-review-level');
@@ -27,8 +33,8 @@ async function run(): Promise<void> {
     const unitTestExcludePatterns = unitTestExcludeFiles ? unitTestExcludeFiles.split(',').map(p => p.trim()) : [];
 
     console.log(`GitHub Token: ${githubToken ? 'Token is set' : 'Token is not set'}`);
-    console.log(`AWS Region: ${awsRegion}`);
-    console.log(`Model ID: ${modelId}`);
+    //console.log(`AWS Region: ${awsRegion}`);
+    //console.log(`Model ID: ${modelId}`);
     console.log(`Excluded files: ${excludeFiles}`);
     console.log(`Code review: ${generateCodeReview}`);
     console.log(`Output language: ${outputLanguage}`);
@@ -42,7 +48,7 @@ async function run(): Promise<void> {
       throw new Error('GitHub token is not set');
     }
 
-    const bedrockClient = new BedrockRuntimeClient({ region: awsRegion || 'us-east-1' });
+    const azClient = new AzureOpenAI({ apiKey, endpoint, apiVersion });
     const octokit = getOctokit(githubToken);
 
     if (!context.payload.pull_request) {
@@ -57,12 +63,12 @@ async function run(): Promise<void> {
 
     // branch to generate PR description
     if (generatePrDescription.toLowerCase() === 'true') {
-      await generatePRDescription(bedrockClient, modelId, octokit);
+      await generatePRDescription(azClient, deployment, octokit);
     }
 
     // branch to generate code review comments
     if (generateCodeReview.toLowerCase() === 'true') {
-      await generateCodeReviewComment(bedrockClient, modelId, octokit, excludePatterns, reviewLevel, outputLanguage);
+      await generateCodeReviewComment(azClient, deployment, octokit, excludePatterns, reviewLevel, outputLanguage);
     }
 
     // branch to generate unit tests suite
@@ -81,7 +87,7 @@ async function run(): Promise<void> {
         unitTestSourceFolder: string
       )  
       */
-      await generateUnitTestsSuite(bedrockClient, modelId, octokit, repo, unitTestSourceFolder);
+      await generateUnitTestsSuite(azClient, deployment, octokit, repo, unitTestSourceFolder);
     }
 
   } catch (error) {

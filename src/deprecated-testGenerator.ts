@@ -14,7 +14,7 @@ export async function generateUnitTests(client: BedrockRuntimeClient, modelId: s
     console.log('Generating unit tests with total prompt length:', prompt.length);
 
     try {
-      const finalResult = await invokeModel(client, modelId, prompt);
+      const finalResult = await invokeModel(prompt);
       if (finalResult === undefined) {
         console.log('Request timed out, returning fake response');
         return await generateFakeResponse();

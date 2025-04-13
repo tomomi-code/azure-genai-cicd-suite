@@ -1,4 +1,5 @@
-import { BedrockRuntimeClient, InvokeModelCommand } from "@aws-sdk/client-bedrock-runtime";
+import { AzureOpenAI } from "openai";
+import { ChatCompletionMessageParam } from "openai/resources/chat";
 
 // Define the LanguageCode type
 export type LanguageCode = 'en' | 'zh' | 'ja' | 'es' | 'fr' | 'de' | 'it';
@@ -125,76 +126,38 @@ export async function exponentialBackoff<T>(
   }
 }
 
-// note the default temperature is 1 according to official documentation: https://docs.anthropic.com/en/api/complete
-export async function invokeModel(client: BedrockRuntimeClient, modelId: string, payloadInput: string, temperature: number = 0.6): Promise<string> {
-    const maxRetries = 3;
-    const initialDelay = 1000; // 1 second
+export async function invokeModel(client: AzureOpenAI, deployment: string, payloadInput: string, temperature: number = 0.6): Promise<string> {
+  const maxRetries = 3;
+  const initialDelay = 5000; // 5 seconds
 
-    const invokeWithRetry = async (): Promise<string> => {
-      try {
-        // seperate branch to invoke RESTFul endpoint exposed by API Gateway, if the modelId is prefixed with string like "sagemaker.<api id>.execute-api.<region>.amazonaws.com/prod"
-        if (modelId.startsWith("sagemaker.")) {
-          // invoke RESTFul endpoint e.g. curl -X POST -H "Content-Type: application/json" -d '{"prompt": "import argparse\ndef main(string: str):\n    print(string)\n    print(string[::-1])\n    if __name__ == \"__main__\":", "parameters": {"max_new_tokens": 256, "temperature": 0.1}}' https://<api id>.execute-api.<region>.amazonaws.com/prod
-          const endpoint = modelId.split("sagemaker.")[1];
+  const invokeWithRetry = async (): Promise<string> => {
+    try {
+      const messages: ChatCompletionMessageParam[]  = [
+        {
+          role: "system",
+          content: "You are a helpful assistant.",
+        },
+        {
+          role: "user",
+          content: payloadInput,
+        },
+      ];
 
-          // invoke the RESTFul endpoint with the payload
-          const payload = {
-            prompt: payloadInput,
-            parameters: {
-              max_new_tokens: 256,
-              temperature: 0.1,
-            },
-          };
+      // Call the chat completions API using the deployment name
+      const response = await client.chat.completions.create({ 
+        messages, 
+        model: deployment, 
+        max_tokens: 4096,
+        temperature: temperature
+      });
 
-          const response = await fetch(`https://${endpoint}`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(payload),
-          });
-
-          const responseBody = await response.json();
-          // extract the generated text from the response, the output payload should be in the format { "generated_text": "..." } using codellama model for now
-          const finalResult = (responseBody as { generated_text: string }).generated_text;
-  
-          return finalResult;
-        }
-
-        const payload = {
-          anthropic_version: "bedrock-2023-05-31",
-          max_tokens: 4096,
-          temperature: temperature,
-          messages: [
-            {
-              role: "user",
-              content: [{
-                type: "text",
-                text: payloadInput,
-              }],
-            },
-          ],
-        };
-
-        const command = new InvokeModelCommand({
-          // modelId: "anthropic.claude-3-5-sonnet-20240620-v1:0"
-          modelId: modelId,
-          contentType: "application/json",
-          body: JSON.stringify(payload),
-        });
-
-        const apiResponse = await client.send(command);
-        const decodedResponseBody = new TextDecoder().decode(apiResponse.body);
-        const responseBody = JSON.parse(decodedResponseBody);
-        return responseBody.content[0].text;
-      } catch (error) {
-        if (error instanceof Error && error.name === 'ThrottlingException') {
-          throw error; // Allow retry for throttling errors
-        }
-        console.error('Error occurred while invoking the model', error);
-        throw error; // Throw other errors without retry
-      }
-    };
-
-    return exponentialBackoff(invokeWithRetry, maxRetries, initialDelay, invokeModel.name);
-  }
+      // Extract the generated text from the response
+      const finalResult = response.choices?.[0]?.message?.content?.trim() ?? '';
+      return finalResult;
+    } catch (error) {
+      console.error('Error occurred while invoking the model:', error);
+      throw error;
+    }
+  };
+  return exponentialBackoff(invokeWithRetry, maxRetries, initialDelay, invokeModel.name);
+}

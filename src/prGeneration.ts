@@ -1,5 +1,5 @@
 import { getOctokit, context } from '@actions/github';
-import { BedrockRuntimeClient } from "@aws-sdk/client-bedrock-runtime";
+import { AzureOpenAI } from "openai";
 // using abosolute path to import the functions from testGenerator.ts
 import { invokeModel, PullRequest } from '@/src/utils';
 
@@ -62,12 +62,12 @@ function calculateFilePatchNumLines(fileChange: string): { added: number, remove
   return { added, removed };
 }
 
-async function generateFileSummary(client: BedrockRuntimeClient, modelId: string, patch: string): Promise<string> {
+async function generateFileSummary(client: AzureOpenAI, deployment: string, patch: string): Promise<string> {
   const prompt = `Summarize the following code changes into concise and clear description in less than 30 words:\n\n${patch}`;
-  return await invokeModel(client, modelId, prompt);
+  return await invokeModel(client, deployment, prompt);
 }
 
-export async function generatePRDescription(client: BedrockRuntimeClient, modelId: string, octokit: ReturnType<typeof getOctokit>): Promise<void> {
+export async function generatePRDescription(client: AzureOpenAI, deployment: string, octokit: ReturnType<typeof getOctokit>): Promise<void> {
   const pullRequest = context.payload.pull_request as PullRequest;
   const repo = context.repo;
 
@@ -97,7 +97,7 @@ export async function generatePRDescription(client: BedrockRuntimeClient, modelI
           ref: pullRequest.head.sha,
         });
         const { added, removed } = calculateFilePatchNumLines(file.patch as string);
-        const summary = await generateFileSummary(client, modelId, file.patch as string);
+        const summary = await generateFileSummary(client, deployment, file.patch as string);
         statsSummary.push({file: file.filename, added: added, removed: removed, summary: summary});
         return `${file.filename}: ${file.status}`;
       }
@@ -114,7 +114,7 @@ export async function generatePRDescription(client: BedrockRuntimeClient, modelI
 
   // Generate the new PR description
   const payloadInput = prDescriptionTemplate;
-  const newPrDescription = await invokeModel(client, modelId, payloadInput);
+  const newPrDescription = await invokeModel(client, deployment, payloadInput);
 
   // Fix the table column width using div element and inline HTML
   const fixedDescription = `
