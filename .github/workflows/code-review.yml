@@ -57,7 +57,7 @@ jobs:
         fi
 
     - name: Intelligent GitHub Actions
-      uses: tomomi-code/azure-genai-cicd-suite@stable
+      uses: tomomi-code/azure-genai-cicd-suite@test1
       with:
         # Automatic Provision: The GITHUB_TOKEN is automatically created and provided by GitHub for each workflow run. You don't need to manually create or store this token as a secret.
         github-token: ${{ secrets.GITHUB_TOKEN }}
