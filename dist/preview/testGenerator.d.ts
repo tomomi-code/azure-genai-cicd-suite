@@ -1,4 +1,4 @@
-import { BedrockRuntimeClient } from "@aws-sdk/client-bedrock-runtime";
+import { AzureOpenAI } from "openai";
 import { getOctokit } from "@actions/github";
 import { ICompletionModel } from "./languageModel";
 import { TestValidator } from "./testValidator";
@@ -33,11 +33,11 @@ export declare class TestGenerator {
     private parseExecutableCode;
     private extractFunctions;
 }
-export declare function generateUnitTestsSuite(client: BedrockRuntimeClient, modelId: string, octokit: ReturnType<typeof getOctokit>, repo: {
+export declare function generateUnitTestsSuite(client: AzureOpenAI, deployment: string, octokit: ReturnType<typeof getOctokit>, repo: {
     owner: string;
     repo: string;
 }, unitTestSourceFolder: string): Promise<void>;
-export declare function generateTestCasesForFile(client: BedrockRuntimeClient, modelId: string, fileMeta: {
+export declare function generateTestCasesForFile(client: AzureOpenAI, modelId: string, fileMeta: {
     fileName: string;
     filePath: string;
     fileContent: string;

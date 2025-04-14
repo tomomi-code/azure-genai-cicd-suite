@@ -1,10 +1,10 @@
-import { BedrockRuntimeClient } from "@aws-sdk/client-bedrock-runtime";
+import { AzureOpenAI } from 'openai';
 export interface ICompletionModel {
-    getCompletions(prompt: string, temperature: number): Promise<string[]>;
+    getCompletions(prompt: string, deployment: string, temperature: number): Promise<string[]>;
 }
 export declare class LanguageModel implements ICompletionModel {
     private client;
-    private modelId;
-    constructor(client: BedrockRuntimeClient, modelId: string);
-    getCompletions(prompt: string, temperature: number): Promise<string[]>;
+    private deployment;
+    constructor(client: AzureOpenAI, deployment: string);
+    getCompletions(prompt: string, deployment: string, temperature: number): Promise<string[]>;
 }
