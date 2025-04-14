@@ -55,7 +55,7 @@ export class TestGenerator {
                     }
                     // if refinedPrompt is not empty means this prompt has been refined before, we don't need to render it again
                     const promptString = prompt.refinedPrompt === '' ? prompt.renderUnitTestGenerationPrompt(inputs) : prompt.refinedPrompt
-                    const completions = await this.model.getCompletions(promptString, temperature)
+                    const completions = await this.model.getCompletions(promptString, "TODO", temperature)
 
                     // record the prompt info to avoid duplicate processing for the same prompt
                     this.collector.recordPromptInfo(prompt, completions.length);

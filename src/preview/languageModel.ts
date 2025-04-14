@@ -13,7 +13,7 @@ export class LanguageModel implements ICompletionModel {
 
     async getCompletions(prompt: string, deployment: string, temperature: number): Promise<string[]> {
         try {
-            const completion = await invokeModel(this.client, deployment, prompt, temperature);
+            const completion = await invokeModel(this.client, this.deployment, prompt, temperature);
             // return the array of completions, only one completion for now
             return [completion];
         } catch (error) {

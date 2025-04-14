@@ -1,4 +1,4 @@
-import { BedrockRuntimeClient } from "@aws-sdk/client-bedrock-runtime";
+import { AzureOpenAI } from "openai";
 export type LanguageCode = 'en' | 'zh' | 'ja' | 'es' | 'fr' | 'de' | 'it';
 export interface PullRequest {
     title: string;
@@ -23,4 +23,4 @@ export declare function shouldExcludeFile(filename: string, excludePatterns: str
 export declare function splitIntoSoloFile(combinedCode: string): Record<string, string>;
 export declare function extractFunctions(content: string): Promise<string[]>;
 export declare function exponentialBackoff<T>(fn: () => Promise<T>, maxRetries: number, initialDelay: number, functionName: string): Promise<T>;
-export declare function invokeModel(client: BedrockRuntimeClient, modelId: string, payloadInput: string, temperature?: number): Promise<string>;
+export declare function invokeModel(client: AzureOpenAI, deployment: string, payloadInput: string, temperature?: number): Promise<string>;

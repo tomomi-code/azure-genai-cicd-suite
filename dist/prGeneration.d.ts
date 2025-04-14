@@ -1,3 +1,3 @@
 import { getOctokit } from '@actions/github';
-import { BedrockRuntimeClient } from "@aws-sdk/client-bedrock-runtime";
-export declare function generatePRDescription(client: BedrockRuntimeClient, modelId: string, octokit: ReturnType<typeof getOctokit>): Promise<void>;
+import { AzureOpenAI } from "openai";
+export declare function generatePRDescription(client: AzureOpenAI, deployment: string, octokit: ReturnType<typeof getOctokit>): Promise<void>;
